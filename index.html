@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Media Generator - Rasm va Video Yaratuvchi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+        
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .tab-btn {
+            padding: 12px 30px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tab-btn:hover, .tab-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .slider-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        input[type="range"] {
+            padding: 0;
+            cursor: pointer;
+        }
+        
+        .slider-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        .spinner {
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .result-item {
+            background: #f9f9f9;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .result-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+        
+        .result-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .result-actions {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .result-actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.9em;
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status-message.show {
+            display: block;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+            
+            .slider-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .results {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 AI Media Generator</h1>
+            <p>Sun'iy intellekt asosida professional rasm va video yaratish</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('image')">🖼️ Rasm Yaratish</button>
+            <button class="tab-btn" onclick="switchTab('video')">🎥 Video Yaratish</button>
+            <button class="tab-btn" onclick="switchTab('history')">📋 Tarix</button>
+        </div>
+        
+        <!-- Image Generation Tab -->
+        <div id="image" class="tab-content active">
+            <div class="card">
+                <h2>Rasm Yaratish</h2>
+                <form id="imageForm" onsubmit="generateImage(event)">
+                    <div class="form-group">
+                        <label>Rasm tavsifi (Prompt) *</label>
+                        <textarea id="imagePrompt" placeholder="Misol: Futuristic city with neon lights at night..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Uslub</label>
+                        <select id="imageStyle">
+                            <option value="realistic">Haqiqiy (Realistic)</option>
+                            <option value="artistic">Sanat (Artistic)</option>
+                            <option value="cartoon">Multfilm (Cartoon)</option>
+                            <option value="oil-painting">Moyl rasmi (Oil Painting)</option>
+                            <option value="watercolor">Suv ranglari (Watercolor)</option>
+                            <option value="3d-render">3D Render</option>
+                            <option value="photography">Fotografiya (Photography)</option>
+                            <option value="concept-art">Konsept Art</option>
+                        </select>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <div class="form-group">
+                            <label>Kenglik (Width): <span class="slider-value" id="widthValue">768</span></label>
+                            <input type="range" id="imageWidth" min="256" max="1024" step="64" value="768" onchange="updateValue('imageWidth', 'widthValue')">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Balandlik (Height): <span class="slider-value" id="heightValue">768</span></label>
+                            <input type="range" id="imageHeight" min="256" max="1024" step="64" value="768" onchange="updateValue('imageHeight', 'heightValue')">
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <div class="form-group">
+                            <label>Rasmlar soni: <span class="slider-value" id="numImagesValue">1</span></label>
+                            <input type="range" id="numImages" min="1" max="4" value="1" onchange="updateValue('numImages', 'numImagesValue')">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Bosqichlar soni: <span class="slider-value" id="stepsValue">50</span></label>
+                            <input type="range" id="steps" min="20" max="100" step="5" value="50" onchange="updateValue('steps', 'stepsValue')">
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button type="submit" class="btn-primary">Rasm Yaratish</button>
+                        <button type="reset" class="btn-secondary">Tozalash</button>
+                    </div>
+                </form>
+                
+                <div class="loading" id="imageLoading">
+                    <div class="spinner"></div>
+                    <p>Rasm yaratish jarayonida...</p>
+                </div>
+                
+                <div class="status-message" id="imageStatus"></div>
+                
+                <div class="results" id="imageResults"></div>
+            </div>
+        </div>
+        
+        <!-- Video Generation Tab -->
+        <div id="video" class="tab-content">
+            <div class="card">
+                <h2>Video Yaratish</h2>
+                <form id="videoForm" onsubmit="generateVideo(event)">
+                    <div class="form-group">
+                        <label>Video tavsifi (Prompt) *</label>
+                        <textarea id="videoPrompt" placeholder="Misol: A cinematic scene of a spaceship flying through asteroids..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Uslub</label>
+                        <select id="videoStyle">
+                            <option value="realistic">Sinematik (Cinematic)</option>
+                            <option value="artistic">Sanat (Artistic)</option>
+                            <option value="cartoon">Multfilm (Cartoon)</option>
+                            <option value="3d-render">3D Render</option>
+                            <option value="photography">Fotogrametrik (Photogrammetry)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <div class="form-group">
+                            <label>Davomiyligi (Soniya): <span class="slider-value" id="durationValue">5</span></label>
+                            <input type="range" id="videoDuration" min="1" max="60" value="5" onchange="updateValue('videoDuration', 'durationValue')">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Kadr soni (FPS): <span class="slider-value" id="fpsValue">24</span></label>
+                            <input type="range" id="videoFPS" min="12" max="60" value="24" onchange="updateValue('videoFPS', 'fpsValue')">
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <div class="form-group">
+                            <label>Kenglik (Width): <span class="slider-value" id="videoWidthValue">512</span></label>
+                            <input type="range" id="videoWidth" min="256" max="1024" step="64" value="512" onchange="updateValue('videoWidth', 'videoWidthValue')">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Balandlik (Height): <span class="slider-value" id="videoHeightValue">512</span></label>
+                            <input type="range" id="videoHeight" min="256" max="1024" step="64" value="512" onchange="updateValue('videoHeight', 'videoHeightValue')">
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button type="submit" class="btn-primary">Video Yaratish</button>
+                        <button type="reset" class="btn-secondary">Tozalash</button>
+                    </div>
+                </form>
+                
+                <div class="loading" id="videoLoading">
+                    <div class="spinner"></div>
+                    <p>Video yaratish jarayonida... (Bu bir oz vaqt olishi mumkin)</p>
+                </div>
+                
+                <div class="status-message" id="videoStatus"></div>
+                
+                <div class="results" id="videoResults"></div>
+            </div>
+        </div>
+        
+        <!-- History Tab -->
+        <div id="history" class="tab-content">
+            <div class="card">
+                <h2>Yaratish Tarixi</h2>
+                <div id="historyContent">
+                    <p>Yaratilgan rasmlar va videolar bu yerda ko'rinadi.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-btn');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function updateValue(inputId, valueId) {
+            const value = document.getElementById(inputId).value;
+            document.getElementById(valueId).textContent = value;
+        }
+        
+        async function generateImage(event) {
+            event.preventDefault();
+            
+            const formData = {
+                prompt: document.getElementById('imagePrompt').value,
+                style: document.getElementById('imageStyle').value,
+                width: parseInt(document.getElementById('imageWidth').value),
+                height: parseInt(document.getElementById('imageHeight').value),
+                num_images: parseInt(document.getElementById('numImages').value),
+                num_inference_steps: parseInt(document.getElementById('steps').value)
+            };
+            
+            showLoading('imageLoading', true);
+            
+            try {
+                const response = await fetch(`${API_URL}/api/image/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'processing') {
+                    showStatus('imageStatus', `✓ ${data.message}`, 'info');
+                    pollImageStatus(data.task_id);
+                } else {
+                    showStatus('imageStatus', 'Xatolik: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showStatus('imageStatus', 'Xatolik: ' + error.message, 'error');
+            } finally {
+                showLoading('imageLoading', false);
+            }
+        }
+        
+        async function generateVideo(event) {
+            event.preventDefault();
+            
+            const formData = {
+                prompt: document.getElementById('videoPrompt').value,
+                style: document.getElementById('videoStyle').value,
+                duration: parseInt(document.getElementById('videoDuration').value),
+                fps: parseInt(document.getElementById('videoFPS').value),
+                width: parseInt(document.getElementById('videoWidth').value),
+                height: parseInt(document.getElementById('videoHeight').value)
+            };
+            
+            showLoading('videoLoading', true);
+            
+            try {
+                const response = await fetch(`${API_URL}/api/video/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'processing') {
+                    showStatus('videoStatus', `✓ ${data.message}`, 'info');
+                    pollVideoStatus(data.task_id);
+                } else {
+                    showStatus('videoStatus', 'Xatolik: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showStatus('videoStatus', 'Xatolik: ' + error.message, 'error');
+            } finally {
+                showLoading('videoLoading', false);
+            }
+        }
+        
+        async function pollImageStatus(taskId) {
+            const pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_URL}/api/image/status/${taskId}`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        displayImages(data.images);
+                        showStatus('imageStatus', '✓ Rasmlar tayyor!', 'success');
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollInterval);
+                        showStatus('imageStatus', 'Xatolik: ' + data.error, 'error');
+                    } else {
+                        showLoading('imageLoading', true);
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                }
+            }, 2000);
+        }
+        
+        async function pollVideoStatus(taskId) {
+            const pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_URL}/api/video/status/${taskId}`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        displayVideo(data.video, data.preview);
+                        showStatus('videoStatus', '✓ Video tayyor!', 'success');
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollInterval);
+                        showStatus('videoStatus', 'Xatolik: ' + data.error, 'error');
+                    } else {
+                        showStatus('videoStatus', `Yaratish jarayonida... (${data.progress}%)`, 'info');
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                }
+            }, 3000);
+        }
+        
+        function displayImages(images) {
+            const resultsDiv = document.getElementById('imageResults');
+            resultsDiv.innerHTML = '';
+            
+            images.forEach((image, index) => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `
+                    <img src="${image}" class="result-image" alt="Generated image ${index + 1}">
+                    <div class="result-actions">
+                        <button class="btn-primary" onclick="downloadFile('${image}')">Yuklab olish</button>
+                    </div>
+                `;
+                resultsDiv.appendChild(item);
+            });
+        }
+        
+        function displayVideo(videoPath, previewPath) {
+            const resultsDiv = document.getElementById('videoResults');
+            resultsDiv.innerHTML = '';
+            
+            const item = document.createElement('div');
+            item.className = 'result-item';
+            item.innerHTML = `
+                <video class="result-image" controls>
+                    <source src="${videoPath}" type="video/mp4">
+                    Video ko'rsatilmayapti...
+                </video>
+                <div class="result-actions">
+                    <button class="btn-primary" onclick="downloadFile('${videoPath}')">Yuklab olish</button>
+                </div>
+            `;
+            resultsDiv.appendChild(item);
+        }
+        
+        function downloadFile(filePath) {
+            const link = document.createElement('a');
+            link.href = filePath;
+            link.download = filePath.split('/').pop();
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function showLoading(elementId, show) {
+            const element = document.getElementById(elementId);
+            if (show) {
+                element.classList.add('show');
+            } else {
+                element.classList.remove('show');
+            }
+        }
+        
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status-message show status-${type}`;
+        }
+    </script>
+</body>
+</html>
