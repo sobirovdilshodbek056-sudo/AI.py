@@ -22,7 +22,7 @@ CUDA 11.8+ (NVIDIA GPU uchun)
 
 ### 1. Repository-ni klonlash
 ```bash
-cd "AI video yaratish uchun dastur"
+cd "AI video yaratish"
 ```
 
 ### 2. Virtual Environment yaratish
